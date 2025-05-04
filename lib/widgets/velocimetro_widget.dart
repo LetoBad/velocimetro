@@ -25,14 +25,14 @@ class VelocimetroWidget extends StatelessWidget {
           Container(
             height: 220,
             width: 220,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient( // Pode usar cores diferentes aqui se quiser dar mais vida
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  const Color.fromARGB(255, 255, 255, 255),
-                  const Color.fromARGB(255, 255, 255, 255),
+                  Color.fromARGB(255, 255, 255, 255),
+                  Color.fromARGB(255, 255, 255, 255),
                 ],
               ),
             ),
@@ -68,9 +68,9 @@ class VelocimetroWidget extends StatelessWidget {
           Container(
             height: 30,
             width: 30,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color.fromARGB(255, 0, 0, 0),
+              color: Color.fromARGB(255, 0, 0, 0),
             ),
           ),
 
@@ -147,7 +147,7 @@ class SpeedometerPainter extends CustomPainter {
 
     // Marcações principais (números grandes)
     const majorTickCount = 10;
-    final angleStep = (endAngle - startAngle) / majorTickCount;
+    const angleStep = (endAngle - startAngle) / majorTickCount;
     final speedStep = maxSpeed / majorTickCount;
 
     final textPainter = TextPainter(
@@ -184,7 +184,7 @@ class SpeedometerPainter extends CustomPainter {
     }
 
     // Marcações menores (traços finos entre as grandes)
-    final minorTickCount = majorTickCount * 5;
+    const minorTickCount = majorTickCount * 5;
     final minorAngleStep = (endAngle - startAngle) / minorTickCount;
 
     for (int i = 0; i <= minorTickCount; i++) {
