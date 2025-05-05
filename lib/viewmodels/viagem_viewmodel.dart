@@ -3,172 +3,157 @@ import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:velocimetro/models/viagem_model.dart';
 
-// ViewModel responsável por gerenciar os dados da viagem (distância, velocidade, etc.)
-class TripViewModel with ChangeNotifier {
-  ViagemModel _tripData = ViagemModel(); // Armazena os dados da viagem
-  StreamSubscription<Position>? _positionStreamSubscription; // Stream para escutar posições do GPS
-  Position? _lastPosition; // Última posição registrada
-  DateTime? _startTime; // Horário em que a viagem começou
-  DateTime? _lastUpdateTime; // Último horário de atualização dos dados
+/// ViewModel para gerenciar a lógica de rastreamento de viagens
+class ViagemViewModel with ChangeNotifier {
+  ViagemModel _dadosViagem = ViagemModel();
+  StreamSubscription<Position>? _assinaturaStreamPosicao;
+  Position? _ultimaPosicao;
+  DateTime? _tempoInicial;
+  DateTime? _ultimoTempoAtualizado;
 
-  // Getters para acessar os dados do modelo externamente
-  double get currentSpeed => _tripData.currentSpeed;
-  double get distance => _tripData.distance;
-  double get averageSpeed => _tripData.averageSpeed;
-  Duration get tripDuration => _tripData.tripDuration;
+  bool _rastreamentoAtivo = false;
+  bool get rastreamentoAtivo => _rastreamentoAtivo;
 
-  // Estado do rastreamento
-  bool _isTracking = false;
-  bool get isTracking => _isTracking;
+  bool _permissaoLocalizacao = false;
+  bool get permissaoLocalizacao => _permissaoLocalizacao;
 
-  // Estado da permissão de localização
-  bool _hasLocationPermission = false;
-  bool get hasLocationPermission => _hasLocationPermission;
+  // Getters públicos para os dados da viagem
+  double get velocidade => _dadosViagem.velocidade;
+  double get distancia => _dadosViagem.distancia;
+  double get velocidadeMedia => _dadosViagem.velocidadeMedia;
+  Duration get duracaoViagem => _dadosViagem.duracaoViagem;
 
-  // Inicialização do ViewModel: verifica permissão
+  // Inicializa o ViewModel verificando a permissão de localização
   Future<void> init() async {
-    await _checkLocationPermission();
+    await _verificarPermissaoLocalizacao();
   }
 
-  // Verifica se o app tem permissão de localização e se o GPS tá ativado
-  Future<void> _checkLocationPermission() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      _hasLocationPermission = false;
+  // Verifica e solicita permissões de localização
+  Future<void> _verificarPermissaoLocalizacao() async {
+    final servicoHabilitado = await Geolocator.isLocationServiceEnabled();
+    if (!servicoHabilitado) {
+      _permissaoLocalizacao = false;
       notifyListeners();
       return;
     }
 
-    // Verifica e solicita permissão se necessário
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        _hasLocationPermission = false;
+    var statusPermissao = await Geolocator.checkPermission();
+    if (statusPermissao == LocationPermission.denied) {
+      statusPermissao = await Geolocator.requestPermission();
+      if (statusPermissao == LocationPermission.denied) {
+        _permissaoLocalizacao = false;
         notifyListeners();
         return;
       }
     }
 
-    if (permission == LocationPermission.deniedForever) {
-      // Permissão negada permanentemente
-      _hasLocationPermission = false;
+    if (statusPermissao == LocationPermission.deniedForever) {
+      _permissaoLocalizacao = false;
       notifyListeners();
       return;
     }
 
-    _hasLocationPermission = true;
-    notifyListeners(); // Notifica que a permissão foi atualizada
+    _permissaoLocalizacao = true;
+    notifyListeners();
   }
 
-  // Método público para solicitar permissão de localização
-  Future<void> requestLocationPermission() async {
-    await _checkLocationPermission();
+  // Solicita manualmente a permissão de localização
+  Future<void> solicitarPermissaoLocalizacao() async {
+    await _verificarPermissaoLocalizacao();
   }
 
   // Inicia o rastreamento da viagem
-  void startTracking() {
-    if (!_hasLocationPermission || _isTracking) return;
+  void iniciarViagem() {
+    if (!_permissaoLocalizacao || _rastreamentoAtivo) return;
 
-    _isTracking = true;
-    _startTime = DateTime.now();
-    _lastUpdateTime = _startTime;
+    _rastreamentoAtivo = true;
+    _tempoInicial = DateTime.now();
+    _ultimoTempoAtualizado = _tempoInicial;
 
-    // Configuração da precisão e frequência de atualização da localização
-    const LocationSettings locationSettings = LocationSettings(
+    const configuracoesLocalizacao = LocationSettings(
       accuracy: LocationAccuracy.high,
-      distanceFilter: 5, // Atualiza a cada 5 metros
+      distanceFilter: 5,
     );
 
-    // Inicia escuta do stream de posições
-    _positionStreamSubscription = Geolocator.getPositionStream(
-      locationSettings: locationSettings,
-    ).listen((Position position) {
-      _updateTripData(position); // Atualiza os dados da viagem a cada nova posição
+    _assinaturaStreamPosicao = Geolocator.getPositionStream(
+      locationSettings: configuracoesLocalizacao,
+    ).listen((posicao) {
+      _atualizarDadosViagem(posicao);
     });
 
     notifyListeners();
   }
 
-  // Pausa o rastreamento
-  void pauseTracking() {
-    if (!_isTracking) return;
+  // Pausa o rastreamento da viagem
+  void pausarRastreamento() {
+    if (!_rastreamentoAtivo) return;
 
-    _positionStreamSubscription?.pause();
-    _isTracking = false;
+    _assinaturaStreamPosicao?.pause();
+    _rastreamentoAtivo = false;
     notifyListeners();
   }
 
-  // Retoma o rastreamento se estiver pausado
-  void resumeTracking() {
-    if (_isTracking) return;
+  // Retoma o rastreamento da viagem
+  void retomarRastreamento() {
+    if (_rastreamentoAtivo) return;
 
-    _positionStreamSubscription?.resume();
-    _lastUpdateTime = DateTime.now();
-    _isTracking = true;
+    _assinaturaStreamPosicao?.resume();
+    _ultimoTempoAtualizado = DateTime.now();
+    _rastreamentoAtivo = true;
     notifyListeners();
   }
 
-  // Reinicia os dados da viagem (zera tudo)
-  void resetTracking() {
-    _tripData = ViagemModel();
-    _lastPosition = null;
-    _startTime = _isTracking ? DateTime.now() : null;
-    _lastUpdateTime = _startTime;
+  // Reseta todos os dados da viagem
+  void resetarViagem() {
+    _dadosViagem = ViagemModel();
+    _ultimaPosicao = null;
+    _tempoInicial = _rastreamentoAtivo ? DateTime.now() : null;
+    _ultimoTempoAtualizado = _tempoInicial;
     notifyListeners();
   }
 
   // Atualiza os dados da viagem com base na nova posição
-  void _updateTripData(Position position) {
-    final now = DateTime.now();
+  void _atualizarDadosViagem(Position posicaoAtual) {
+    final agora = DateTime.now();
+    final velocidadeKmh = posicaoAtual.speed * 3.6;
 
-    // Converte velocidade de m/s para km/h
-    double speedKmh = position.speed * 3.6;
-
-    // Se já tem uma posição anterior, calcula a distância entre elas
-    if (_lastPosition != null) {
-      double distanceInMeters = Geolocator.distanceBetween(
-        _lastPosition!.latitude,
-        _lastPosition!.longitude,
-        position.latitude,
-        position.longitude,
+    if (_ultimaPosicao != null) {
+      final distanciaMetros = Geolocator.distanceBetween(
+        _ultimaPosicao!.latitude,
+        _ultimaPosicao!.longitude,
+        posicaoAtual.latitude,
+        posicaoAtual.longitude,
       );
 
-      // Atualiza a distância total (em km)
-      _tripData = _tripData.copyWith(
-        distance: _tripData.distance + (distanceInMeters / 1000),
+      _dadosViagem = _dadosViagem.copiarCom(
+        distancia: _dadosViagem.distancia + (distanciaMetros / 1000),
       );
     }
 
-    // Atualiza a duração da viagem
-    if (_startTime != null) {
-      _tripData = _tripData.copyWith(
-        tripDuration: now.difference(_startTime!),
-      );
+    if (_tempoInicial != null) {
+      final duracao = agora.difference(_tempoInicial!);
+      _dadosViagem = _dadosViagem.copiarCom(duracaoViagem: duracao);
     }
 
-    // Calcula a velocidade média com base no tempo e distância
-    if (_tripData.tripDuration.inSeconds > 0) {
-      double avgSpeed = (_tripData.distance / _tripData.tripDuration.inSeconds) * 3600;
-      _tripData = _tripData.copyWith(averageSpeed: avgSpeed);
+    if (_dadosViagem.duracaoViagem.inSeconds > 0) {
+      final velocidadeMediaCalculada = (_dadosViagem.distancia /
+              _dadosViagem.duracaoViagem.inSeconds) *
+          3600;
+      _dadosViagem = _dadosViagem.copiarCom(velocidadeMedia: velocidadeMediaCalculada);
     }
 
-    // Atualiza a velocidade atual
-    _tripData = _tripData.copyWith(currentSpeed: speedKmh);
+    _dadosViagem = _dadosViagem.copiarCom(velocidade: velocidadeKmh);
 
-    _lastPosition = position;
-    _lastUpdateTime = now;
+    _ultimaPosicao = posicaoAtual;
+    _ultimoTempoAtualizado = agora;
 
-    notifyListeners(); // Notifica os listeners que os dados mudaram
+    notifyListeners();
   }
 
-  // Cancela a escuta do stream ao destruir o ViewModel
+  // Cancela a assinatura ao descartar o ViewModel
   @override
   void dispose() {
-    _positionStreamSubscription?.cancel();
+    _assinaturaStreamPosicao?.cancel();
     super.dispose();
   }
 }

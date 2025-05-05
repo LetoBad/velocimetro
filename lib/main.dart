@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => TripViewModel(),
+      create: (context) => ViagemViewModel(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Velocímetro & Hodômetro',

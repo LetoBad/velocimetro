@@ -18,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     // Inicializa o ViewModel e solicita permissões de localização logo após o carregamento da tela
     Future.delayed(Duration.zero, () {
-      Provider.of<TripViewModel>(context, listen: false).init();
+      Provider.of<ViagemViewModel>(context, listen: false).init();
     });
   }
 
@@ -37,10 +37,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
 
       // Consumer para escutar o TripViewModel
-      body: Consumer<TripViewModel>(
-        builder: (context, tripViewModel, child) {
+      body: Consumer<ViagemViewModel>(
+        builder: (context, ViagemViewModel, child) {
           // Se não tiver permissão de localização, exibe aviso
-          if (!tripViewModel.hasLocationPermission) {
+          if (!ViagemViewModel.permissaoLocalizacao) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -61,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 20),
                   ElevatedButton(
                     // Solicita permissão novamente
-                    onPressed: () => tripViewModel.requestLocationPermission(),
+                    onPressed: () => ViagemViewModel.solicitarPermissaoLocalizacao(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
@@ -88,8 +88,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       // Velocímetro (componente customizado)
                       VelocimetroWidget(
-                        speed: tripViewModel.currentSpeed,
-                        maxSpeed: 180,
+                        velocidade: ViagemViewModel.velocidade,
+                        velocidadeMax: 180,
                       ),
 
                       const SizedBox(height: 30),
@@ -99,16 +99,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 24.0),
                         child: Row(
                           children: [
-                            _buildInfoCard(
+                            _infoCard(
                               'Distância',
-                              '${tripViewModel.distance.toStringAsFixed(2)} km',
+                              '${ViagemViewModel.distancia.toStringAsFixed(2)} km',
                               Icons.straighten,
                               Colors.green.shade400,
                             ),
                             const SizedBox(width: 20),
-                            _buildInfoCard(
+                            _infoCard(
                               'Vel. Média',
-                              '${tripViewModel.averageSpeed.toStringAsFixed(1)} km/h',
+                              '${ViagemViewModel.velocidade.toStringAsFixed(1)} km/h',
                               Icons.speed,
                               Colors.orange.shade400,
                             ),
@@ -121,9 +121,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       // Cartão de tempo total da viagem
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: _buildInfoCard(
+                        child: _infoCard(
                           'Tempo',
-                          _formatDuration(tripViewModel.tripDuration),
+                          _formatarDuracao(ViagemViewModel.duracaoViagem),
                           Icons.timer,
                           Colors.blue.shade400,
                           fullWidth: true,
@@ -154,23 +154,23 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     // Botão de iniciar ou pausar rastreamento
-                    _buildActionButton(
-                      tripViewModel.isTracking ? Icons.pause : Icons.play_arrow,
-                      tripViewModel.isTracking ? Colors.orange : const Color.fromARGB(255, 0, 0, 0),
+                    _actionButton(
+                      ViagemViewModel.rastreamentoAtivo ? Icons.pause : Icons.play_arrow,
+                      ViagemViewModel.rastreamentoAtivo ? Colors.orange : const Color.fromARGB(255, 0, 0, 0),
                       () {
-                        if (tripViewModel.isTracking) {
-                          tripViewModel.pauseTracking();
+                        if (ViagemViewModel.rastreamentoAtivo) {
+                          ViagemViewModel.pausarRastreamento();
                         } else {
-                          tripViewModel.startTracking();
+                          ViagemViewModel.iniciarViagem();
                         }
                       },
                     ),
 
                     // Botão para resetar os dados
-                    _buildActionButton(
+                    _actionButton(
                       Icons.refresh,
                       const Color.fromARGB(255, 0, 0, 0),
-                      () => tripViewModel.resetTracking(),
+                      () => ViagemViewModel.retomarRastreamento(),
                     ),
                   ],
                 ),
@@ -183,7 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Componente reutilizável para mostrar dados da viagem (distância, tempo, etc.)
-  Widget _buildInfoCard(
+  Widget _infoCard(
     String title,
     String value,
     IconData icon,
@@ -230,7 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Botão com apenas ícone clicável
-  Widget _buildActionButton(IconData icon, Color color, VoidCallback onTap) {
+  Widget _actionButton(IconData icon, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Icon(
@@ -242,11 +242,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Função utilitária para formatar o tempo da viagem como hh:mm:ss
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    String hours = twoDigits(duration.inHours);
-    String minutes = twoDigits(duration.inMinutes.remainder(60));
-    String seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$hours:$minutes:$seconds';
+  String _formatarDuracao(Duration duration) {
+    String doisDigitos(int n) => n.toString().padLeft(2, '0');
+    String horas = doisDigitos(duration.inHours);
+    String minutos = doisDigitos(duration.inMinutes.remainder(60));
+    String segundos = doisDigitos(duration.inSeconds.remainder(60));
+    return '$horas:$minutos:$segundos';
   }
 }

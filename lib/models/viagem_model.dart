@@ -1,31 +1,31 @@
-// Modelo de dados que representa uma viagem
+// Modelo de dados
 class ViagemModel {
-  double currentSpeed; // Velocidade atual em km/h
-  double distance; // Distância total percorrida em km
-  double averageSpeed; // Velocidade média da viagem em km/h
-  Duration tripDuration; // Duração total da viagem
+  double velocidade;
+  double distancia;
+  double velocidadeMedia;
+  Duration duracaoViagem;
 
   // Construtor com valores padrão
   ViagemModel({
-    this.currentSpeed = 0.0,   // Inicializa a velocidade atual como 0
-    this.distance = 0.0,       // Inicializa a distância percorrida como 0
-    this.averageSpeed = 0.0,   // Inicializa a velocidade média como 0
-    this.tripDuration = const Duration(), // Inicializa a duração como zero
+    this.velocidade = 0.0,
+    this.distancia = 0.0,
+    this.velocidadeMedia = 0.0,
+    this.duracaoViagem = const Duration(),
   });
 
   // Método para copiar o modelo e atualizar apenas os campos desejados
-  ViagemModel copyWith({
-    double? currentSpeed,   // Novo valor opcional para velocidade atual
-    double? distance,       // Novo valor opcional para distância
-    double? averageSpeed,   // Novo valor opcional para velocidade média
-    Duration? tripDuration, // Novo valor opcional para duração da viagem
+  ViagemModel copiarCom({
+    double? velocidade, 
+    double? distancia,
+    double? velocidadeMedia,
+    Duration? duracaoViagem,
   }) {
-    // Retorna uma nova instância de ViagemModel com os valores atualizados
+    // Retorna uma nova instância de ModeloViagem
     return ViagemModel(
-      currentSpeed: currentSpeed ?? this.currentSpeed,
-      distance: distance ?? this.distance,
-      averageSpeed: averageSpeed ?? this.averageSpeed,
-      tripDuration: tripDuration ?? this.tripDuration,
+      velocidade: velocidade ?? this.velocidade,
+      distancia: distancia ?? this.distancia,
+      velocidadeMedia: velocidadeMedia ?? this.velocidadeMedia,
+      duracaoViagem: duracaoViagem ?? this.duracaoViagem,
     );
   }
 }
