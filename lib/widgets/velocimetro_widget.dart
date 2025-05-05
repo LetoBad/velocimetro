@@ -4,8 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 // Widget principal do velocímetro
 class VelocimetroWidget extends StatelessWidget {
-  final double velocidade;     // Velocidade atual
-  final double velocidadeMax;  // Velocidade máxima do velocímetro
+  final double velocidade; // Velocidade atual
+  final double velocidadeMax; // Velocidade máxima do velocímetro
 
   const VelocimetroWidget({
     super.key,
@@ -31,8 +31,8 @@ class VelocimetroWidget extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color.fromARGB(255, 255, 255, 255),
-                  Color.fromARGB(255, 255, 255, 255),
+                  Color(0xFF3A5A99), // Azul mais suave
+                  Color(0xFF6B7B94), // Lilás suave
                 ],
               ),
             ),
@@ -54,10 +54,7 @@ class VelocimetroWidget extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.red,
-                    Colors.red.shade800,
-                  ],
+                  colors: [Colors.green.shade300, Colors.green.shade700],
                 ),
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -70,7 +67,7 @@ class VelocimetroWidget extends StatelessWidget {
             width: 30,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              color: Color.fromARGB(255, 0, 0, 0),
+              color: Color(0xFF2E3B3C), // Cor escura para o centro
             ),
           ),
 
@@ -84,14 +81,14 @@ class VelocimetroWidget extends StatelessWidget {
                   style: GoogleFonts.orbitron(
                     fontSize: 46,
                     fontWeight: FontWeight.bold,
-                    color: const Color.fromARGB(255, 61, 61, 61),
+                    color: Colors.white, // Cor branca para contraste
                   ),
                 ),
                 Text(
                   'km/h',
                   style: GoogleFonts.orbitron(
                     fontSize: 16,
-                    color: Colors.white70,
+                    color: Colors.white70, // Cor mais suave para o texto
                   ),
                 ),
               ],
@@ -107,7 +104,7 @@ class VelocimetroWidget extends StatelessWidget {
     double velocidadeLimitada = velocidade.clamp(0, velocidadeMax);
 
     double anguloInicial = -3 * pi / 4; // -135 graus
-    double anguloFinal = 3 * pi / 4;    // 135 graus
+    double anguloFinal = 3 * pi / 4; // 135 graus
     double intervaloTotal = anguloFinal - anguloInicial;
 
     double proporcao = velocidadeLimitada / velocidadeMax;
@@ -126,10 +123,13 @@ class PintorVelocimetro extends CustomPainter {
     final centro = Offset(tamanho.width / 2, tamanho.height / 2);
     final raio = tamanho.width / 2;
 
-    final pincel = Paint()
-      ..color = const Color.fromARGB(255, 0, 0, 0).withOpacity(0.7)
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
+    final pincel =
+        Paint()
+          ..color = Colors.white.withOpacity(
+            0.6,
+          ) // Cor mais suave para as linhas
+          ..strokeWidth = 2
+          ..style = PaintingStyle.stroke;
 
     const anguloInicial = -3 * pi / 4;
     const anguloFinal = 3 * pi / 4;
@@ -163,20 +163,23 @@ class PintorVelocimetro extends CustomPainter {
       desenhadorTexto.text = TextSpan(
         text: velocidade,
         style: const TextStyle(
-          color: Color.fromARGB(179, 0, 0, 0),
+          color: Colors.white, // Cor branca para o texto das marcas
           fontSize: 12,
         ),
       );
 
       desenhadorTexto.layout();
 
-      final textoX = centro.dx + (raio - 50) * cos(angulo) - desenhadorTexto.width / 2;
-      final textoY = centro.dy + (raio - 50) * sin(angulo) - desenhadorTexto.height / 2;
+      final textoX =
+          centro.dx + (raio - 50) * cos(angulo) - desenhadorTexto.width / 2;
+      final textoY =
+          centro.dy + (raio - 50) * sin(angulo) - desenhadorTexto.height / 2;
       desenhadorTexto.paint(canvas, Offset(textoX, textoY));
     }
 
     const quantidadeMarcasPequenas = quantidadeMarcasGrandes * 5;
-    final passoAnguloMenor = (anguloFinal - anguloInicial) / quantidadeMarcasPequenas;
+    final passoAnguloMenor =
+        (anguloFinal - anguloInicial) / quantidadeMarcasPequenas;
 
     for (int i = 0; i <= quantidadeMarcasPequenas; i++) {
       if (i % 5 != 0) {
@@ -190,7 +193,7 @@ class PintorVelocimetro extends CustomPainter {
           Offset(x1, y1),
           Offset(x2, y2),
           Paint()
-            ..color = Colors.white.withOpacity(0.4)
+            ..color = Colors.white.withOpacity(0.3) // Linhas mais suaves
             ..strokeWidth = 1,
         );
       }

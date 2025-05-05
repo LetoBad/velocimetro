@@ -25,159 +25,148 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255), // Fundo branco
+      backgroundColor: Colors.white, // Fundo branco
       appBar: AppBar(
         title: const Text(
           'Velocímetro',
-          style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)), // Título preto
+          style: TextStyle(color: Colors.black), // Título preto
         ),
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255), // AppBar branca
+        backgroundColor: Colors.white, // AppBar branca
         elevation: 0, // Sem sombra
         centerTitle: true, // Título centralizado
       ),
-
-      // Consumer para escutar o TripViewModel
       body: Consumer<ViagemViewModel>(
-        builder: (context, ViagemViewModel, child) {
-          // Se não tiver permissão de localização, exibe aviso
-          if (!ViagemViewModel.permissaoLocalizacao) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.location_disabled,
-                    size: 60,
-                    color: Colors.white70,
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Permissão de localização necessária',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    // Solicita permissão novamente
-                    onPressed: () => ViagemViewModel.solicitarPermissaoLocalizacao(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
-                    child: const Text('Solicitar Permissão'),
-                  ),
-                ],
-              ),
-            );
+        builder: (context, viagemViewModel, child) {
+          if (!viagemViewModel.permissaoLocalizacao) {
+            return _buildPermissaoSolicitacao(viagemViewModel);
           }
 
-          // Se tiver permissão, exibe os dados do velocímetro e viagem
-          return Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 20),
-
-                      // Velocímetro (componente customizado)
-                      VelocimetroWidget(
-                        velocidade: ViagemViewModel.velocidade,
-                        velocidadeMax: 180,
-                      ),
-
-                      const SizedBox(height: 30),
-
-                      // Cartões de distância e velocidade média
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: Row(
-                          children: [
-                            _infoCard(
-                              'Distância',
-                              '${ViagemViewModel.distancia.toStringAsFixed(2)} km',
-                              Icons.straighten,
-                              Colors.green.shade400,
-                            ),
-                            const SizedBox(width: 20),
-                            _infoCard(
-                              'Vel. Média',
-                              '${ViagemViewModel.velocidade.toStringAsFixed(1)} km/h',
-                              Icons.speed,
-                              Colors.orange.shade400,
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Cartão de tempo total da viagem
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: _infoCard(
-                          'Tempo',
-                          _formatarDuracao(ViagemViewModel.duracaoViagem),
-                          Icons.timer,
-                          Colors.blue.shade400,
-                          fullWidth: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Botões de controle (play/pause e reset)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24.0,
-                  vertical: 16.0,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 255, 255, 255), // Fundo branco
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, -5), // Sombra pra cima
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    // Botão de iniciar ou pausar rastreamento
-                    _actionButton(
-                      ViagemViewModel.rastreamentoAtivo ? Icons.pause : Icons.play_arrow,
-                      ViagemViewModel.rastreamentoAtivo ? Colors.orange : const Color.fromARGB(255, 0, 0, 0),
-                      () {
-                        if (ViagemViewModel.rastreamentoAtivo) {
-                          ViagemViewModel.pausarRastreamento();
-                        } else {
-                          ViagemViewModel.iniciarViagem();
-                        }
-                      },
-                    ),
-
-                    // Botão para resetar os dados
-                    _actionButton(
-                      Icons.refresh,
-                      const Color.fromARGB(255, 0, 0, 0),
-                      () => ViagemViewModel.retomarRastreamento(),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
+          return _buildInformacoesViagem(viagemViewModel);
         },
+      ),
+    );
+  }
+
+  Widget _buildPermissaoSolicitacao(ViagemViewModel viagemViewModel) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.location_disabled, size: 60, color: Colors.white70),
+          const SizedBox(height: 20),
+          const Text(
+            'Permissão de localização necessária',
+            style: TextStyle(color: Colors.white, fontSize: 18),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () => viagemViewModel.solicitarPermissaoLocalizacao(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: const Text('Solicitar Permissão'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInformacoesViagem(ViagemViewModel viagemViewModel) {
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                VelocimetroWidget(
+                  velocidade: viagemViewModel.velocidade,
+                  velocidadeMax: 180,
+                ),
+                const SizedBox(height: 30),
+                _buildCartoesInformacoes(viagemViewModel),
+                const SizedBox(height: 20),
+                _buildTempoTotalViagem(viagemViewModel),
+              ],
+            ),
+          ),
+        ),
+        _buildControleBotoes(viagemViewModel),
+      ],
+    );
+  }
+
+  Widget _buildCartoesInformacoes(ViagemViewModel viagemViewModel) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Row(
+        children: [
+          _infoCard(
+            'Distância',
+            '${viagemViewModel.distancia.toStringAsFixed(2)} km',
+            Icons.straighten,
+            Colors.green.shade400,
+          ),
+          const SizedBox(width: 20),
+          _infoCard(
+            'Vel. Média',
+            '${viagemViewModel.velocidade.toStringAsFixed(1)} km/h',
+            Icons.speed,
+            Colors.orange.shade400,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTempoTotalViagem(ViagemViewModel viagemViewModel) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: _infoCard(
+        'Tempo',
+        _formatarDuracao(viagemViewModel.duracaoViagem),
+        Icons.timer,
+        Colors.blue.shade400,
+        fullWidth: true,
+      ),
+    );
+  }
+
+  Widget _buildControleBotoes(ViagemViewModel viagemViewModel) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+      decoration: BoxDecoration(
+        color: Colors.white, // Fundo branco
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, -5), // Sombra pra cima
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _actionButton(
+            viagemViewModel.rastreamentoAtivo ? Icons.pause : Icons.play_arrow,
+            viagemViewModel.rastreamentoAtivo ? Colors.orange : Colors.black,
+            () {
+              if (viagemViewModel.rastreamentoAtivo) {
+                viagemViewModel.pausarRastreamento();
+              } else {
+                viagemViewModel.iniciarViagem();
+              }
+            },
+          ),
+          _actionButton(
+            Icons.refresh,
+            Colors.black,
+            () => viagemViewModel.retomarRastreamento(),
+          ),
+        ],
       ),
     );
   }
@@ -195,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 0, 0, 0),
+          color: Colors.black,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -218,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               value,
               style: const TextStyle(
-                color: Color.fromARGB(255, 255, 255, 255),
+                color: Colors.white,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -233,20 +222,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _actionButton(IconData icon, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: Icon(
-        icon,
-        color: color,
-        size: 30,
-      ),
+      child: Icon(icon, color: color, size: 30),
     );
   }
 
   // Função utilitária para formatar o tempo da viagem como hh:mm:ss
   String _formatarDuracao(Duration duration) {
     String doisDigitos(int n) => n.toString().padLeft(2, '0');
-    String horas = doisDigitos(duration.inHours);
-    String minutos = doisDigitos(duration.inMinutes.remainder(60));
-    String segundos = doisDigitos(duration.inSeconds.remainder(60));
-    return '$horas:$minutos:$segundos';
+    return '${doisDigitos(duration.inHours)}:${doisDigitos(duration.inMinutes.remainder(60))}:${doisDigitos(duration.inSeconds.remainder(60))}';
   }
 }
